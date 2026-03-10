@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="text-2xl font-bold mb-6">Add Product</h2>
+
+<div class="bg-white p-6 rounded shadow space-y-4">
+
+<input id="name"
+class="border p-2 w-full rounded"
+placeholder="Product Name">
+
+<input id="desc"
+class="border p-2 w-full rounded"
+placeholder="Description">
+
+<input id="price"
+class="border p-2 w-full rounded"
+placeholder="Price">
+
+<input id="qty"
+class="border p-2 w-full rounded"
+placeholder="Quantity">
+
+<button onclick="addProduct()"
+class="bg-green-500 text-white px-4 py-2 rounded">
+Submit
+</button>
+
+</div>
+
+<script src="/static/js/auth_guard.js"></script>
+<script>
+requireAuth();
+</script>
+<script src="/static/js/api.js"></script>
+
+{% endblock %}

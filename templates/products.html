@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="text-xl font-bold">Products</h1>
+
+<div id="product-list"></div>
+
+<button onclick="prevPage()">Prev</button>
+<button onclick="nextPage()">Next</button>
+
+<script src="/static/js/products.js"></script>
+
+{% endblock %}

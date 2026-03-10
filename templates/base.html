@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Inventory System API's UI</title>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow p-4 flex gap-6">
+    <a href="/" class="text-blue-600 font-semibold">Home</a>
+    <a href="/products-ui" class="text-blue-600 font-semibold">Products</a>
+    <a href="/add-product-ui" class="text-blue-600 font-semibold">Add Product</a>
+
+    <span id="auth-section"></span>
+</nav>
+
+<script>
+function renderAuth(){
+
+    const token = localStorage.getItem("token");
+    const container = document.getElementById("auth-section");
+
+    if(token){
+        container.innerHTML = `<button onclick="logout()" class="bg-red-500 text-white px-4 py-1 rounded">Logout</button>`;
+    }else{
+        container.innerHTML = `<a href="/login-ui" class="bg-blue-500 text-white px-4 py-1 rounded">Login</a>`;
+    }
+}
+
+function logout(){
+    localStorage.removeItem("token");
+    alert("Logged out");
+    window.location="/";
+}
+
+renderAuth();
+</script>
+
+    <hr>
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>
