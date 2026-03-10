@@ -14,7 +14,7 @@ def verify_password(password: str, hashed_password: str):
     return pwd_context.verify(password,hashed_password)
 
 
-SECRET_KEY = os.getenv("SECRETE_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
