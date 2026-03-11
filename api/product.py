@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from db.session import SessionLocal
 from schemas.product import ProductCreate, ProductResponse
 from services import product_service
-from core.dependencies import get_current_user
+from core.dependencies import get_admin_user
 from models.user import User
 
 router = APIRouter(prefix="/products", tags=["Products"])
@@ -38,12 +38,12 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=ProductResponse)
-def create_product(product: ProductCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_product(product: ProductCreate, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
     return product_service.create_product(db, product,current_user.id)
 
 
 @router.put("/{product_id}", response_model=ProductResponse)
-def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+def update_product(product_id: int, product: ProductCreate, db: Session = Depends(get_db),current_user: User = Depends(get_admin_user)):
     
     updated = product_service.update_product(db, product_id, product,current_user.id)
     if not updated:
@@ -52,7 +52,7 @@ def update_product(product_id: int, product: ProductCreate, db: Session = Depend
 
 
 @router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+def delete_product(product_id: int, db: Session = Depends(get_db),current_user: User = Depends(get_admin_user)):
     deleted = product_service.delete_product(db, product_id,current_user.id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Product not found")

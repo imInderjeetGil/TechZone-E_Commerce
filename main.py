@@ -12,12 +12,12 @@ import os
 
 Base.metadata.create_all(bind=engine)
 
-ENV = os.getenv("ENV","dev")
-
+ENV = os.getenv("ENV")
+print(ENV)
 if ENV == "prod":
     app = FastAPI(title="Demo of FastAPI Basics",docs_url=None, redoc_url=None)
 else:
-    app = FastAPI()
+    app = FastAPI(title="Demo of FastAPI Basics")
 
 templates = Jinja2Templates(directory="templates")
 

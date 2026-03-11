@@ -22,7 +22,6 @@ def get_current_user(
 ):
 
     token = credentials.credentials
-
     payload = decode_token(token)
 
     if payload is None:
@@ -36,3 +35,8 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
 
     return user
+
+def get_admin_user(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admins Only")
+    return current_user
