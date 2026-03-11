@@ -6,12 +6,18 @@ from api import product,auth
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import Request
+import os
 
 
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Demo of FastAPI Basics")
+ENV = os.getenv("ENV","dev")
+
+if ENV == "prod":
+    app = FastAPI(title="Demo of FastAPI Basics",docs_url=None, redoc_url=None)
+else:
+    app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
