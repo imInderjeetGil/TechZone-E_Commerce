@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from db.session import engine
-from models import user,product, cart, order
+from models import user,product, cart, order, review
 from db.base import Base
-from api import product,auth, cart, order, payment
+from api import product,auth, cart, order, payment, review
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi import Request
@@ -41,6 +41,14 @@ def products_ui(request: Request):
         {"request": request}
     )
     
+@app.get("/product/{product_id}")
+def product_detail(product_id: int, request: Request):
+    return templates.TemplateResponse(
+        "product_detail.html",
+        {"request": request, "product_id": product_id}
+    )
+
+
 @app.get("/add-product-ui")
 def add_product_ui(request:Request):
     return templates.TemplateResponse(
@@ -96,4 +104,4 @@ app.include_router(auth.router)
 app.include_router(cart.router)
 app.include_router(order.router)
 app.include_router(payment.router)
-
+app.include_router(review.router)

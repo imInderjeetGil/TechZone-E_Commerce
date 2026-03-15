@@ -70,20 +70,24 @@ async function loadProducts(){
                 : guestButton;
 
         container.innerHTML += `
-<div class="card">
+<div class="card" style="display:flex; flex-direction:column; height:100%;">
     ${imageHtml}
-    <div style="padding:1.25rem;">
+    <div style="padding:1.25rem; style="padding:1.25rem; display:flex; flex-direction:column; flex:1;">
         <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:0.5rem;">
-            <h2 style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:var(--navy); line-height:1.3;">${p.name}</h2>
+
+           <a href="/product/${p.id}?id=${p.id}" style="font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:var(--navy); line-height:1.3; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">${p.name}</a>
             <span style="background:#eff6ff; color:var(--blue); padding:2px 8px; border-radius:4px; font-size:0.75rem; font-weight:700; white-space:nowrap; margin-left:0.5rem;">
                 Qty: ${p.quantity}
             </span>
         </div>
-        <p style="color:#64748b; font-size:0.85rem; margin-bottom:1rem; line-height:1.5;">${p.description}</p>
+        <p style="color:#64748b; font-size:0.85rem; margin-bottom:1rem; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.description}</p>
+
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
             <span style="font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:var(--navy);">₹${p.price.toLocaleString()}</span>
         </div>
-        ${actionButtons}
+       <div style="margin-top:auto;">
+    ${actionButtons}
+</div>
     </div>
 </div>`;
     });
