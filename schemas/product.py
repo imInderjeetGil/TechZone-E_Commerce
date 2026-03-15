@@ -5,6 +5,7 @@ class ProductBase(BaseModel):
     description:str
     price:float
     quantity:int
+    image_url: str | None = None
     
 class ProductCreate(ProductBase):
     pass

@@ -35,7 +35,8 @@ async function addProduct(){
         name: document.getElementById("name").value,
         description: document.getElementById("desc").value,
         price: parseFloat(document.getElementById("price").value),
-        quantity: parseInt(document.getElementById("qty").value)
+        quantity: parseInt(document.getElementById("qty").value),
+        image_url: document.getElementById("image_url").value || null
     }
 
     if(!product.name || !product.description || !product.price || !product.quantity){

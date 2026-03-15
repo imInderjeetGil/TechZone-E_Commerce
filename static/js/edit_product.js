@@ -10,24 +10,25 @@ async function loadProduct(){
     document.getElementById("desc").value = p.description;
     document.getElementById("price").value = p.price;
     document.getElementById("qty").value = p.quantity;
+    document.getElementById("image_url").value = p.image_url || "";
 }
 
 async function updateProduct(){
-
     const token = localStorage.getItem("token");
 
     const product = {
         name: document.getElementById("name").value,
         description: document.getElementById("desc").value,
         price: parseFloat(document.getElementById("price").value),
-        quantity: parseInt(document.getElementById("qty").value)
+        quantity: parseInt(document.getElementById("qty").value),
+        image_url: document.getElementById("image_url").value || null
     }
-
-    const res = await fetch(`/products/${productId}`,{
-        method:"PUT",
-        headers:{
-            "Content-Type":"application/json",
-            "Authorization":"Bearer " + token
+    console.log("Sending product:", product);
+    const res = await fetch(`/products/${productId}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
         },
         body: JSON.stringify(product)
     });
@@ -38,8 +39,6 @@ async function updateProduct(){
         alert(data.detail || "Update failed");
         return;
     }
-
-    alert("Product updated");
 
     window.location = "/products-ui";
 }

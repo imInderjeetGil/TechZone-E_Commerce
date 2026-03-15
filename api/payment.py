@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.session import SessionLocal
+from models.cart import CartItem
 from core.dependencies import get_current_user
 from models.user import User
 from models.order import Order
@@ -25,10 +26,18 @@ def get_db():
         db.close()
         
 @router.post("/create-order")
-def create_payment_order(db: Session = Depends(get_db), currnet_user: User = Depends(get_current_user)):
+def create_payment_order(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     
-        order = order_service.place_order(db,currnet_user.id)
+        existing_order = db.query(Order).filter(
+        Order.user_id == current_user.id,
+        Order.status == "pending"
+    ).first()
         
+        if existing_order:
+            order = existing_order
+        else:
+            order = order_service.place_order(db, current_user.id)
+    
         razorpay_order = client.order.create({
             "amount": int(order.total_amount*100), # razorpay uses paise
             "currency": "INR",
@@ -38,7 +47,8 @@ def create_payment_order(db: Session = Depends(get_db), currnet_user: User = Dep
         return {
             "razorpay_order_id": razorpay_order["id"],
             "amount": razorpay_order["amount"],
-            "order_id": order.id
+            "order_id": order.id,
+            "razorpay_key_id": os.getenv("RAZORPAY_KEY_ID")
         }
         
 @router.post("/verify")
@@ -47,12 +57,12 @@ def verify_payments(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    body = f"{data['razorpay_order_id']} | {data['razorpay_payment_id']}"
+    body = f"{data['razorpay_order_id']}|{data['razorpay_payment_id']}" 
     
     expected_signature = hmac.new(
-        os.getenv("RAZORPAY_KEY_SECRET").encode(),
-        body.encode(),
-        hashlib.sha256
+    key=os.getenv("RAZORPAY_KEY_SECRET").encode(),
+    msg=body.encode(),
+    digestmod=hashlib.sha256
     ).hexdigest()
     
     if expected_signature != data["razorpay_signature"]:
@@ -65,6 +75,8 @@ def verify_payments(
         raise HTTPException(status_code=404, detail="Order not found")
     
     order.status = "paid"
+  
+    db.query(CartItem).filter(CartItem.user_id == current_user.id).delete()
     db.commit()
     
     return{"message": "Payment varified","order_id": order_id}

@@ -44,8 +44,6 @@ def place_order(db: Session, user_id: int):
         item.order_id = order.id
         db.add(item)
 
-    db.query(CartItem).filter(CartItem.user_id == user_id).delete()
-
     db.commit()
     db.refresh(order)
 
