@@ -45,7 +45,7 @@ jobs:
 
       - name: Deploy on EC2
         run: |
-          ssh ${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
           set -e
 
           # ENV variables for container (hardcode or use EC2 env/Secrets manager)
