@@ -43,26 +43,101 @@ jobs:
       
       - name: Deploy on EC2
         run: |
-          ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
           set -e
-          cd /home/ubuntu/techzone
           
-          # Create/update .env file
+          echo "=========================================="
+          echo "Starting deployment on $(date)"
+          echo "=========================================="
+          
+          cd /home/ubuntu/techzone || { echo "❌ Directory not found"; exit 1; }
+          
+          # Create .env file
+          echo "==> Creating .env file"
           cat > .env << 'ENVFILE'
+          POSTGRES_USER=postgres
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          # ... rest of env vars
+          POSTGRES_DB=alchemydb
+          DATABASE_URL=postgresql://postgres:${{ secrets.POSTGRES_PASSWORD }}@techzone-postgres:5432/alchemydb
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          ENV=prod
+          RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
+          RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}
           ENVFILE
           
-          # Stop + remove old containers
-          docker-compose down --remove-orphans || true
+          # Verify .env created
+          if [ ! -f .env ]; then
+            echo "❌ .env file creation failed"
+            exit 1
+          fi
+          echo "✅ .env file created successfully"
+          
+          # Stop old containers gracefully
+          echo "==> Stopping old containers"
+          docker-compose down --remove-orphans 2>/dev/null || echo "⚠️  No containers running, continuing..."
           
           # Pull latest image
-          docker pull ${{ secrets.DOCKER_USERNAME }}/techzone-ecommerce:latest
+          echo "==> Pulling latest image from Docker Hub"
+          if docker pull ${{ secrets.DOCKER_USERNAME }}/techzone-ecommerce:latest; then
+            echo "✅ Image pulled successfully"
+          else
+            echo "❌ Failed to pull image"
+            exit 1
+          fi
           
-          # Start fresh
-          docker-compose up -d
+          # Verify docker-compose.yml exists
+          if [ ! -f docker-compose.yml ]; then
+            echo "❌ docker-compose.yml not found in /home/ubuntu/techzone"
+            exit 1
+          fi
           
-          # Health check
-          sleep 5
-          curl -f http://localhost/health || (docker-compose logs && exit 1)
+          # Start services
+          echo "==> Starting services with docker-compose"
+          if docker-compose up -d; then
+            echo "✅ Services started"
+          else
+            echo "❌ Failed to start services"
+            docker-compose logs
+            exit 1
+          fi
+          
+          # Wait for services to be ready
+          echo "==> Waiting for services to be ready (10 seconds)"
+          sleep 10
+          
+          # Health check with retries
+          echo "==> Running health check"
+          HEALTH_CHECK_ATTEMPTS=5
+          HEALTH_CHECK_INTERVAL=2
+          
+          for attempt in $(seq 1 $HEALTH_CHECK_ATTEMPTS); do
+            echo "Health check attempt $attempt/$HEALTH_CHECK_ATTEMPTS"
+            if curl -f http://localhost/health 2>/dev/null; then
+              echo "✅ App is healthy!"
+              break
+            elif [ $attempt -lt $HEALTH_CHECK_ATTEMPTS ]; then
+              echo "⚠️  Health check failed, retrying in ${HEALTH_CHECK_INTERVAL}s..."
+              sleep $HEALTH_CHECK_INTERVAL
+            else
+              echo "❌ Health check failed after $HEALTH_CHECK_ATTEMPTS attempts"
+              echo "Container logs:"
+              docker-compose logs
+              exit 1
+            fi
+          done
+          
+          # Cleanup old images (keep last 3)
+          echo "==> Cleaning up old Docker images"
+          docker image prune -f --filter "until=168h" 2>/dev/null || true
+          
+          # Final status
+          echo "=========================================="
+          echo "✅ Deployment successful on $(date)"
+          echo "=========================================="
+          echo ""
+          echo "Running containers:"
+          docker-compose ps
+          echo ""
+          echo "Recent logs:"
+          docker-compose logs --tail=10
           EOF
