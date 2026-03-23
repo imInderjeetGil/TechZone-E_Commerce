@@ -43,26 +43,26 @@ jobs:
       
       - name: Deploy on EC2
         run: |
-          ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh ${{ secrets.EC2_HOST }} << 'EOF'
           set -e
           cd /home/ubuntu/techzone
           
-          echo "==> Pulling latest image from Docker Hub"
+          # Create/update .env file
+          cat > .env << 'ENVFILE'
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          # ... rest of env vars
+          ENVFILE
+          
+          # Stop + remove old containers
+          docker-compose down --remove-orphans || true
+          
+          # Pull latest image
           docker pull ${{ secrets.DOCKER_USERNAME }}/techzone-ecommerce:latest
           
-          echo "==> Starting services with docker-compose"
+          # Start fresh
           docker-compose up -d
           
-          echo "==> Waiting for app to be ready"
+          # Health check
           sleep 5
-          
-          echo "==> Health check"
-          if ! curl -f http://localhost/health 2>/dev/null; then
-            echo "Health check failed!"
-            docker-compose logs
-            exit 1
-          fi
-          
-          echo "==> Deployment successful ✅"
-          docker-compose ps
+          curl -f http://localhost/health || (docker-compose logs && exit 1)
           EOF
