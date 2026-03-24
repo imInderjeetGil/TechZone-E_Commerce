@@ -42,6 +42,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/Techzone
+            echo "VERSION=${{ env.VERSION }}" >> .env
             docker pull ${{ secrets.DOCKER_USERNAME }}/techzone:${{ env.VERSION }}
             docker-compose down
             docker-compose up -d
