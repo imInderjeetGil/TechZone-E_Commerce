@@ -5,6 +5,7 @@ from schemas.product import ProductCreate, ProductResponse
 from services import product_service
 from core.dependencies import get_admin_user
 from models.user import User
+from fastapi import Query
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -16,15 +17,16 @@ def get_db():
     finally:
         db.close()
 
-
 @router.get("", response_model=list[ProductResponse])
+@router.get("/", response_model=list[ProductResponse])
+
 def get_products(
-    page: int = 1,
-    limit: int=10,
-    min_price: float | None = None,
-    max_price: float | None = None,
-    search: str | None = None,
-    sort: str | None = None,
+    page: int = Query(1, ge=1),
+    limit: int = Query(10, ge=1, le=100),
+    min_price: float | None = Query(None),
+    max_price: float | None = Query(None),
+    search: str | None = Query(None, min_length=0),
+    sort: str | None = Query(None),
     db: Session = Depends(get_db)):
     return product_service.get_products(db,page,limit,min_price,max_price,search,sort)
 
@@ -38,6 +40,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=ProductResponse)
+@router.post("/", response_model=ProductResponse)
 def create_product(product: ProductCreate, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
     return product_service.create_product(db, product,current_user.id)
 
