@@ -64,7 +64,10 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/techzone:${{ env.VERSION }}
             docker-compose down
             docker-compose up -d
+
+            # 3. Restart Nginx to connect to the fresh containers
+            sudo systemctl restart nginx
             
-            # 3. CLEANUP: Remove old unused images, containers, and networks
+            # 4. CLEANUP: Remove old unused images, containers, and networks
             echo "Cleaning up old docker resources..."
             docker system prune -af
